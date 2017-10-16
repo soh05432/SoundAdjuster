@@ -1,0 +1,16 @@
+﻿<Window x:Class="PlotTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PlotTest"
+        xmlns:oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="194.553" Width="194.179">
+    <StackPanel>
+        <Button Content="Background Worker" Click="BackgroundWorkerMethodClick"/>
+        <Button Content="CompositionTarget.Rendering" Click="CompositionTargetRenderingMethodClick"/>
+        <Button Content="Timer" Click="TimerMethodClick"/>
+    </StackPanel>
+
+</Window>
