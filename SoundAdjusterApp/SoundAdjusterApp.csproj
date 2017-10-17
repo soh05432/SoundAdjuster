@@ -155,12 +155,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\acwrapper\acwrapper.vcxproj">
-      <Project>{ebc3ec7e-feea-4a55-9342-e6c4905ba322}</Project>
-      <Name>VolumeAdjusterWrapper</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4.5.2 %28x86 and x64%29</ProductName>
