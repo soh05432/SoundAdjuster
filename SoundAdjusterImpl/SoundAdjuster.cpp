@@ -13,40 +13,8 @@
 #define EXIT_ON_ERROR(hres) if (FAILED(hres)) {goto Exit;}
 #define SAFE_RELEASE(var) if (var != NULL) { var->Release(); var = NULL;}
 
-class SA_audioSessionNotification : public IAudioSessionNotification
-{
-    std::vector<IAudioMeterInformation*> m_pMeterInformations;
-
-public:
-
-    SA_audioSessionNotification()
-    {
-
-    }
-
-    virtual HRESULT STDMETHODCALLTYPE OnSessionCreated( IAudioSessionControl *NewSession ) override
-    {
-        HRESULT hr;
-        IAudioMeterInformation* iAudioMeterInformation;
-        hr = NewSession->QueryInterface( &iAudioMeterInformation );
-
-        if ( hr == S_OK && iAudioMeterInformation != NULL )
-        {
-            m_pMeterInformations.push_back( iAudioMeterInformation );
-        }
-
-        return hr;
-    }
-
-    virtual HRESULT STDMETHODCALLTYPE QueryInterface( REFIID riid,
-        _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject ) override { return 0; }
-    virtual ULONG STDMETHODCALLTYPE AddRef( void ) override { return 0; }
-    virtual ULONG STDMETHODCALLTYPE Release( void ) override { return 0; }
-};
-
 struct SA_context
 {
-
     ~SA_context()
     {
         SAFE_RELEASE( m_pEndpointVolume );
@@ -78,6 +46,38 @@ struct SA_context
     IAudioEndpointVolume* m_pEndpointVolume;
     IAudioSessionEnumerator* m_pSessionEnumerator;
     IAudioSessionNotification* m_pSessionNotification;
+    std::vector<IAudioMeterInformation*> m_pMeterInformations;
+};
+
+class SA_audioSessionNotification : public IAudioSessionNotification
+{
+public:
+
+    SA_audioSessionNotification( SA_context* sac )
+    {
+
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE OnSessionCreated( IAudioSessionControl *NewSession ) override
+    {
+        HRESULT hr;
+        IAudioMeterInformation* iAudioMeterInformation;
+        hr = NewSession->QueryInterface( &iAudioMeterInformation );
+
+        if ( hr == S_OK && iAudioMeterInformation != NULL )
+        {
+            m_pMeterInformations.push_back( iAudioMeterInformation );
+        }
+
+        return hr;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE QueryInterface( REFIID riid,
+        _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject ) override {
+        return 0;
+    }
+    virtual ULONG STDMETHODCALLTYPE AddRef( void ) override { return 0; }
+    virtual ULONG STDMETHODCALLTYPE Release( void ) override { return 0; }
 };
 
 SA_context* SA_initialize()
@@ -101,17 +101,14 @@ SA_context* SA_initialize()
     hr = pEnumerator->GetDefaultAudioEndpoint( eRender, eMultimedia, &pDevice );
     EXIT_ON_ERROR( hr );
 
-    // Initialize IAudioEndpointVolume
     hr = pDevice->Activate( __uuidof( IAudioEndpointVolume ), CLSCTX_ALL, NULL, (void**)&sac->m_pEndpointVolume );
     EXIT_ON_ERROR( hr );
 
-    // Initialize IAudioSessionEnumerator
     IAudioSessionManager2* pSessionManager = nullptr;
     hr = pDevice->Activate( __uuidof( IAudioSessionManager2 ), CLSCTX_ALL, NULL, (void**)&pSessionManager );
     EXIT_ON_ERROR( hr );
     
-    // Register for add/remove of audio sessions
-    sac->m_pSessionNotification = new SA_audioSessionNotification();
+    sac->m_pSessionNotification = new SA_audioSessionNotification( sac );
     hr = pSessionManager->RegisterSessionNotification( sac->m_pSessionNotification );
     EXIT_ON_ERROR( hr );
     
@@ -129,7 +126,45 @@ Exit:
     return sac;
 }
 
-void SA_loop( SA_context* sa )
+void SA_start( SA_context* sa )
+{
+    std::thread t( &SA_loop, sa );
+    t.detach();
+}
+
+void SA_stop( SA_context* sa )
+{
+    delete sa;
+}
+
+void updateSessionMeters( SA_context* sac )
+{
+    HRESULT hr;
+    IAudioSessionControl* iAudioSessionControl;
+    IAudioMeterInformation* iAudioMeterInformation;
+    
+    int numSessions = 0;
+    hr = sac->m_pSessionEnumerator->GetCount( &numSessions );
+    if ( FAILED( hr ) ) { return Exit( m_resources, hr ); }
+    
+    sac->m_pSessionNotification->m_iAudioMeterInformations.clear();
+    
+    for ( int i = 0; i < numSessions; i++ )
+    {
+        hr = sac->m_pSessionEnumerator->GetSession( i, &iAudioSessionControl );
+        m_resources.push_back( iAudioSessionControl );
+        if ( FAILED( hr ) ) { return Exit( m_resources, hr ); }
+        
+        hr = iAudioSessionControl->QueryInterface( &iAudioMeterInformation );
+        m_resources.push_back( iAudioMeterInformation );
+        if ( FAILED( hr ) ) { return Exit( m_resources, hr ); }
+        
+        m_iAudioMeterInformations.push_back( iAudioMeterInformation );
+    }
+    return 0;
+}
+
+void SA_loop( SA_context* sac )
 {
     float peakValHolder = 0.f;
     float peakValMax = -1.0;
@@ -140,7 +175,7 @@ void SA_loop( SA_context* sa )
     float dDb = 0.f;
 
     const float ln10 = (float)log( 10 );
-    /*
+
     updateSessionMeters();
 
     while ( m_running )
@@ -186,98 +221,14 @@ void SA_loop( SA_context* sa )
     }
 
     if ( FAILED( hr ) ) { return Exit( m_resources, hr ); }
-    */
+
     //return hr;
-}
 
-void SA_start( SA_context* sa )
-{
-    std::thread t( &SA_loop, sa );
-    t.detach();
-}
+Exit:
+    SAFE_RELEASE( sac->m_pEndpointVolume );
+    SAFE_RELEASE( sac->m_pSessionNotification );
+    SAFE_RELEASE( sac->m_pSessionEnumerator );
 
-void SA_stop( SA_context* sa )
-{
-    delete sa;
-}
-
-
-float SoundAdjuster::getAverage()
-{
-    return (float)( m_sampledMaf->getAverage() );
-}
-
-
-SoundAdjuster* init()
-{
-
-}
-
-SoundAdjuster::SoundAdjuster() :
-    m_targetVolume( 0.025f ),
-    m_sampledMaf( new MovingAvgFilter<double>( 50 ) ),
-    m_averageBuf( new CircularBuffer<double>( m_bufferSize ) ),
-    m_running( true ),
-    m_adjust( false ),
-    m_pEndpointVolume( nullptr ),
-    m_pSessionEnumerator( nullptr )
-{
-
-}
-
-SoundAdjuster::~SoundAdjuster()
-{
-	delete m_sampledMaf;
-	delete m_averageBuf;
-}
-
-void SoundAdjuster::start()
-{
-
-}
-
-HRESULT SoundAdjuster::processAudioLoop()
-{
-
-}
-
-HRESULT SoundAdjuster::updateSessionMeters()
-{
-	HRESULT hr;
-	IAudioSessionControl* iAudioSessionControl;
-	IAudioMeterInformation* iAudioMeterInformation;
-
-	int numSessions = 0;
-	hr = m_pSessionEnumerator->GetCount( &numSessions );
-	if ( FAILED( hr ) ) { return Exit( m_resources, hr ); }
-
-	m_iAudioMeterInformations.clear();
-
-	for ( int i = 0; i < numSessions; i++ )
-	{
-		hr = m_pSessionEnumerator->GetSession( i, &iAudioSessionControl );
-		m_resources.push_back( iAudioSessionControl );
-		if ( FAILED( hr ) ) { return Exit( m_resources, hr ); }
-
-		hr = iAudioSessionControl->QueryInterface( &iAudioMeterInformation );
-		m_resources.push_back( iAudioMeterInformation );
-		if ( FAILED( hr ) ) { return Exit( m_resources, hr ); }
-
-		m_iAudioMeterInformations.push_back( iAudioMeterInformation );
-	}
-	return 0;
-}
-
-HRESULT STDMETHODCALLTYPE SoundAdjuster::OnSessionCreated( IAudioSessionControl *NewSession )
-{
-	HRESULT hr;
-	IAudioMeterInformation* iAudioMeterInformation;
-	hr = NewSession->QueryInterface( &iAudioMeterInformation );
-	m_resources.push_back( iAudioMeterInformation );
-	if ( FAILED( hr ) ) { return Exit( m_resources, hr ); }
-
-	m_iAudioMeterInformations.push_back( iAudioMeterInformation );
-
-	return hr;
+    return;
 }
 

@@ -1,7 +1,6 @@
 #pragma once
 
-struct SA_context;
-typedef SA_context SA;
+typedef struct SA_context SA;
 
 SA* SA_initialize();
 
