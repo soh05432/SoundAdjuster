@@ -6,7 +6,7 @@ int main( int argc, char* argv[] )
 
     SA_start( sa );
 
-    SA_stop( sa );
+    //SA_stop( sa );
     
     return 0;
 }
