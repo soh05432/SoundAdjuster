@@ -8,7 +8,7 @@
 #include "Buffers.h"
 
 #include <vector>
-#include <thread>
+#include <future>
 
 #define EXIT_ON_ERROR(hres) if (FAILED(hres)) {goto Exit;}
 #define SAFE_RELEASE(var) if (var != NULL) { var->Release(); var = NULL;}
@@ -174,7 +174,10 @@ void SA_loop( SA_context* sac )
 
 		// Audio limits: min: -95.25, max: 0, step: 0.03125, #steps: 3048
 
-		hr = sac->m_pEndpointVolume->SetMasterVolumeLevel( currentDb, NULL );
+		if ( sac->m_adjust )
+		{
+			hr = sac->m_pEndpointVolume->SetMasterVolumeLevel( currentDb, NULL );
+		}
 
 		Sleep( 1 );
 	}
@@ -187,8 +190,7 @@ void SA_loop( SA_context* sac )
 
 void SA_start( SA_context* sa )
 {
-    std::thread t( &SA_loop, sa );
-    t.detach();
+	std::async( std::launch::async, &SA_loop, sa );
 }
 
 void SA_stop( SA_context* sa )
