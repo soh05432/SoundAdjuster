@@ -130,6 +130,11 @@
   <ItemGroup>
     <ClCompile Include="SoundAdjusterWrapper.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SoundAdjusterImpl\SoundAdjusterImpl.vcxproj">
+      <Project>{352c75df-4740-4644-ab6c-b2c5b4f9f59a}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

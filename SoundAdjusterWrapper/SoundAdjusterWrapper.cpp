@@ -4,42 +4,42 @@ public ref class SoundAdjusterWrapper
 {
 private:
 
-    SoundAdjuster* m_soundAdjuster;
+	SAC* m_sac;
 
 public:
 
     SoundAdjusterWrapper()
     {
-        m_soundAdjuster = new SoundAdjuster;
+		m_sac = SA_initialize();
     }
 
     ~SoundAdjusterWrapper()
     {
-        delete m_soundAdjuster;
+		SA_stop( m_sac );
     }
 
     void start()
     {
-        m_soundAdjuster->start();
+		SA_start( m_sac );
     }
 
     void stop()
     {
-        m_soundAdjuster->stop();
+		SA_stop( m_sac );
     }
 
     void setTargetVolume( float value )
     {
-        m_soundAdjuster->setTargetVolume( value );
+
     }
 
     float getTargetVolume()
     {
-        return m_soundAdjuster->getTargetVolume();
+		return 0.f;
     }
 
     float getAverage()
     {
-        return m_soundAdjuster->getAverage();
+		return 0.f;
     }
 };

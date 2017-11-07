@@ -21,8 +21,7 @@ namespace acApp
 
         }
 
-
-        private VolumeAdjusterWrapper VolumeAdjuster;
+        private SoundAdjusterWrapper SoundAdjuster;
 
         private PlotModel PlotModel;
 
@@ -38,10 +37,8 @@ namespace acApp
             NextIdx = 0;
             Data = new List<DataPoint>();
 
-
-
-            VolumeAdjuster = new VolumeAdjusterWrapper();
-            VolumeAdjuster.start();
+            SoundAdjuster = new SoundAdjusterWrapper();
+            SoundAdjuster.start();
             TimeStart = DateTime.Now;
             Data.Clear();
             NextIdx = 0;
@@ -93,9 +90,9 @@ namespace acApp
             {
                 double y = yAxis.InverseTransform(e.Position.Y);
 
-                if (VolumeAdjuster != null)
+                if (SoundAdjuster != null)
                 {
-                    VolumeAdjuster.setTargetVolume((float)y);
+                    SoundAdjuster.setTargetVolume((float)y);
                 }
 
                 series.Points.Clear();
@@ -107,9 +104,9 @@ namespace acApp
         {
             var s = (LineSeries)PlotModel.Series[0];
 
-            if (VolumeAdjuster != null)
+            if (SoundAdjuster != null)
             {
-                float average = VolumeAdjuster.getAverage();
+                float average = SoundAdjuster.getAverage();
                 double timeInSeconds = (DateTime.Now - TimeStart).TotalMilliseconds / 1000;
                 DataPoint dp = new DataPoint(timeInSeconds, average);
                 UpdatePlotBuffer(dp);
@@ -154,9 +151,9 @@ namespace acApp
 
         public void SetTargetVolume(double value)
         {
-            if (VolumeAdjuster != null)
+            if (SoundAdjuster != null)
             {
-                VolumeAdjuster.setTargetVolume((float)value);
+                SoundAdjuster.setTargetVolume((float)value);
             }
         }
     }

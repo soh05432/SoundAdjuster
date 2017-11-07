@@ -1,11 +1,20 @@
 #pragma once
 
-typedef struct SA_context SA;
+typedef struct SA_context SAC;
 
-SA* SA_initialize();
+enum ADJUST_MODE
+{
+	ADJUST = 0,
+	NO_ADJUST
+};
 
-// Non-blocking, uses std::async to run a separate thread for audio processing loop
-void SA_start( SA* sa );
+SAC* SA_initialize();
 
-// 
-void SA_stop( SA* sa );
+// Start processing non-blocking
+void SA_start( SAC* sa );
+
+// Set whether to adjust or not
+void SA_setAdjustMode( SAC* sa, ADJUST_MODE mode );
+
+// Stop processing audio
+void SA_stop( SAC* sa );

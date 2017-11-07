@@ -169,6 +169,12 @@
   <ItemGroup>
     <Resource Include="Themes\MetroDark\HowToApplyTheme.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SoundAdjusterWrapper\SoundAdjusterWrapper.vcxproj">
+      <Project>{ebc3ec7e-feea-4a55-9342-e6c4905ba322}</Project>
+      <Name>SoundAdjusterWrapper</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

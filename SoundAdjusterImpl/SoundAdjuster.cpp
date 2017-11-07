@@ -58,11 +58,13 @@ struct SA_context
     // Current target volume level
     float m_targetVolume; // 0.025f;
 
+	std::future<void> m_loop;
+
     // Control whether sound is adjusted
-    bool m_adjust;
+	std::atomic<ADJUST_MODE> m_adjust;
 
     // Control whether sound is processed
-    bool m_running;
+    std::atomic<bool> m_running;
 
     // Storage for volume level data
     MovingAvgFilter<double> m_sampledMaf;
@@ -82,7 +84,7 @@ SA_context* SA_initialize()
     sac->m_minDB = -95.2188f;
     sac->m_maxPeak = 0.3f;
     sac->m_targetVolume = 0.025f;
-    sac->m_adjust = false;
+    sac->m_adjust = ADJUST_MODE::ADJUST;
     sac->m_running = true;
 
     CoInitializeEx( NULL, COINIT_MULTITHREADED );
@@ -174,7 +176,7 @@ void SA_loop( SA_context* sac )
 
 		// Audio limits: min: -95.25, max: 0, step: 0.03125, #steps: 3048
 
-		if ( sac->m_adjust )
+		if ( sac->m_adjust == ADJUST_MODE::ADJUST )
 		{
 			hr = sac->m_pEndpointVolume->SetMasterVolumeLevel( currentDb, NULL );
 		}
@@ -182,18 +184,21 @@ void SA_loop( SA_context* sac )
 		Sleep( 1 );
 	}
 
-	//return hr;
-
-
 	return;
 }
 
 void SA_start( SA_context* sa )
 {
-	std::async( std::launch::async, &SA_loop, sa );
+	sa->m_loop = std::async( std::launch::async, &SA_loop, sa );
+}
+
+void SA_setAdjustMode( SA_context* sa, ADJUST_MODE mode )
+{
+	sa->m_adjust = mode;
 }
 
 void SA_stop( SA_context* sa )
 {
+	sa->m_running = false;
     delete sa;
 }
