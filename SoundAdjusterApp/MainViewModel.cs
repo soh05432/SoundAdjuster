@@ -4,17 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using System.Windows.Input;
 using System.Threading;
-using System.Windows;
 
 using OxyPlot;
 using OxyPlot.Axes;
 using OxyPlot.Series;
 
-namespace acApp
+namespace SoundAdjusterApp
 {
-    public class MainViewModel
+    class MainViewModel
     {
         struct PlotInternalData
         {
@@ -37,6 +35,8 @@ namespace acApp
             NextIdx = 0;
             Data = new List<DataPoint>();
 
+            InitPlotModel();
+
             SoundAdjuster = new SoundAdjusterWrapper();
             SoundAdjuster.start();
             TimeStart = DateTime.Now;
@@ -45,6 +45,11 @@ namespace acApp
 
             Timer timer = new Timer(onTimerElapsed);
             timer.Change(0, 29);
+        }
+
+        ~MainViewModel()
+        {
+            SoundAdjuster.Dispose();
         }
 
         private void InitPlotModel()
