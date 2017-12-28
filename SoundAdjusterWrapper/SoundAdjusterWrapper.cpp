@@ -49,4 +49,14 @@ public:
 
 		return true;
     }
+
+	void adjust()
+	{
+		SA_setAdjustMode( m_sac, ADJUST );
+	}
+
+	void suspend()
+	{
+		SA_setAdjustMode( m_sac, NO_ADJUST );
+	}
 };

@@ -18,12 +18,12 @@ namespace SoundAdjusterApp
     {
         private SoundAdjusterWrapper _soundAdjuster;
 
-        public AdjustCommand AdjustCommand
+        public AdjustCommand _AdjustCommand
         {
             get; private set;
         }
 
-        public StopCommand StopCommand
+        public StopCommand _StopCommand
         {
             get; private set;
         }
@@ -190,35 +190,35 @@ namespace SoundAdjusterApp
                 _soundAdjuster.setTargetVolume( (float)value );
             }
         }
-    }
 
-    public class AdjustCommand : ICommand
-    {
-        public event EventHandler CanExecuteChanged;
-
-        public bool CanExecute(object parameter)
+        public class AdjustCommand : ICommand
         {
-            return false;
+            public event EventHandler CanExecuteChanged;
+
+            public bool CanExecute(object parameter)
+            {
+                return true;
+            }
+
+            public void Execute(object parameter)
+            {
+                _soundAdjuster.adjust();
+            }
         }
 
-        public void Execute(object parameter)
+        public class StopCommand : ICommand
         {
+            public event EventHandler CanExecuteChanged;
 
-        }
-    }
+            public bool CanExecute(object parameter)
+            {
+                return true;
+            }
 
-    public class StopCommand : ICommand
-    {
-        public event EventHandler CanExecuteChanged;
+            public void Execute(object parameter)
+            {
 
-        public bool CanExecute(object parameter)
-        {
-            return false;
-        }
-
-        public void Execute(object parameter)
-        {
-
+            }
         }
     }
 }
