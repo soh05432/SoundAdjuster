@@ -30,7 +30,7 @@ public:
 
     void setTargetVolume( float value )
     {
-
+		SA_setTargetVolume( m_sac, value );
     }
 
     float getTargetVolume()
@@ -38,8 +38,15 @@ public:
 		return 0.f;
     }
 
-    float getAverage()
+	bool getAverage( float% res )
     {
-		return 0.f;
+		float r = res;
+		if ( !SA_getAverage( m_sac, r ) )
+		{
+			res = r;
+			return false;
+		}
+
+		return true;
     }
 };

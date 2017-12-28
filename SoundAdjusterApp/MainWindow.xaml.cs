@@ -13,6 +13,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using Hardcodet.Wpf.TaskbarNotification;
+
+using System.Drawing;
+
 namespace SoundAdjusterApp
 {
     /// <summary>
@@ -23,6 +27,24 @@ namespace SoundAdjusterApp
         public MainWindow()
         {
             InitializeComponent();
+
+            NotifyIcon.Icon = SystemIcons.Application;
+        }
+
+        protected override void OnStateChanged( EventArgs e )
+        {
+            if ( WindowState == WindowState.Minimized )
+            {
+                this.Hide();
+            }
+
+            base.OnStateChanged( e );
+        }
+
+        private void TrayLeftMouseDownHandler(object sender, RoutedEventArgs e)
+        {
+            this.Show();
+            this.WindowState = WindowState.Normal;
         }
     }
 }

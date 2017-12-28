@@ -11,7 +11,7 @@
 #include <future>
 
 #define EXIT_ON_ERROR(hres) if (FAILED(hres)) {goto Exit;}
-#define SAFE_RELEASE(var) if (var != NULL) { var->Release(); var = NULL;}
+#define SAFE_RELEASE(var) if (var != nullptr) { var->Release(); var = NULL;}
 
 class SA_audioSessionNotification : public IAudioSessionNotification
 {
@@ -56,7 +56,7 @@ struct SA_context
     float m_maxPeak; // 0.30f
 
     // Current target volume level
-    float m_targetVolume; // 0.025f;
+    std::atomic<float> m_targetVolume; // 0.015f;
 
 	std::future<void> m_loop;
 
@@ -67,8 +67,8 @@ struct SA_context
     std::atomic<bool> m_running;
 
     // Storage for volume level data
-    MovingAvgFilter<double> m_sampledMaf;
-    CircularBuffer<double> m_averageBuf;
+    MovingAvgFilter<float> m_sampledMaf;
+    CircularBuffer<float> m_averageBuf;
 
     // Windows Audio Session API classes for the actual sampling and adjusting
     IAudioEndpointVolume* m_pEndpointVolume;
@@ -83,7 +83,7 @@ SA_context* SA_initialize()
     sac->m_maxDB = -4.6875f;
     sac->m_minDB = -95.2188f;
     sac->m_maxPeak = 0.3f;
-    sac->m_targetVolume = 0.025f;
+    sac->m_targetVolume = 0.015f;
     sac->m_adjust = ADJUST_MODE::ADJUST;
     sac->m_running = true;
 
@@ -145,11 +145,11 @@ void SA_loop( SA_context* sac )
 
 	updateSessionMeters( sac );
 
+	HRESULT hr;
+
 	while ( sac->m_running )
 	{
 		peakValMax = -1.0;
-
-		HRESULT hr;
 
 		for ( int i = 0; i < (int)sac->m_pSessionNotification->m_pMeterInformations.size(); i++ )
 		{
@@ -174,7 +174,7 @@ void SA_loop( SA_context* sac )
 		currentDb = min( currentDb, sac->m_maxDB );
 		currentDb = max( currentDb, sac->m_minDB );
 
-		// Audio limits: min: -95.25, max: 0, step: 0.03125, #steps: 3048
+		// Audio limits: min: -95.25, max: -4.6875f, step: 0.03125, #steps: 3048
 
 		if ( sac->m_adjust == ADJUST_MODE::ADJUST )
 		{
@@ -183,6 +183,8 @@ void SA_loop( SA_context* sac )
 
 		Sleep( 1 );
 	}
+
+	hr = sac->m_pEndpointVolume->SetMasterVolumeLevel( -95.25, NULL );
 
 	return;
 }
@@ -197,8 +199,29 @@ void SA_setAdjustMode( SA_context* sa, ADJUST_MODE mode )
 	sa->m_adjust = mode;
 }
 
-void SA_stop( SA_context* sa )
+SAcode SA_getAverage( SA_context* sa, float& avg )
+{
+	if ( sa->m_averageBuf.isEmpty() )
+	{
+		return SA_FAILED;
+	}
+
+	avg = sa->m_averageBuf.getLatestVal();
+
+	return SA_OK;
+}
+
+SAcode SA_setTargetVolume( SA_context* sa, const float targetVolume )
+{
+	sa->m_targetVolume = targetVolume;
+
+	return SA_OK;
+}
+
+SAcode SA_stop( SA_context* sa )
 {
 	sa->m_running = false;
     delete sa;
+
+	return SA_OK;
 }

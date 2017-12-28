@@ -18,7 +18,7 @@ int main( int argc, char* argv[] )
 
 	Sleep( 10000 );
 
-	//SA_stop( sac );
+	SA_stop( sac );
     
     return 0;
 }
