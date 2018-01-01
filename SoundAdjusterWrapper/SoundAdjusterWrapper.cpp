@@ -50,12 +50,12 @@ public:
 		return true;
     }
 
-	void adjust()
+	void turnOnAdjust()
 	{
 		SA_setAdjustMode( m_sac, ADJUST );
 	}
 
-	void suspend()
+	void turnOffAdjust()
 	{
 		SA_setAdjustMode( m_sac, NO_ADJUST );
 	}

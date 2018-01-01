@@ -12,7 +12,7 @@
         <local:MainViewModel/>
     </Window.DataContext>
     <Grid>
-        <oxy:PlotView Model="{Binding _plotModel}"/>
+        <oxy:PlotView Model="{Binding PlotModel}"/>
         <tb:TaskbarIcon x:Name="NotifyIcon"
                         ToolTipText="Sound Adjuster"
                         Visibility="Visible"
@@ -20,11 +20,11 @@
 
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Adjust"
-                              Command="{Binding AdjustCommand}">
+                    <MenuItem Header="TurnOnAdjust"
+                              Command="{Binding OnCommand}">
                     </MenuItem>
-                    <MenuItem Header="Stop"
-                              Command="{Binding StopCommand}">
+                    <MenuItem Header="TurnOffAdjust"
+                              Command="{Binding OffCommand}">
                     </MenuItem>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
